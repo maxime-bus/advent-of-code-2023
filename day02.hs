@@ -52,6 +52,15 @@ parseGame s =
       [_, gameId] = words game
   in Game { gameId = read gameId,  sets = parseSets sets }
 
+minimumViableSet :: Game -> Set
+minimumViableSet game =
+  let minimumRequiredRedCubes = maximum $ map redCubes (sets game)
+      minimumRequiredGreenCubes = maximum $ map greenCubes (sets game)
+      minimumRequiredBlueCubes = maximum $ map blueCubes (sets game)
+  in Set { redCubes = minimumRequiredRedCubes, greenCubes = minimumRequiredGreenCubes, blueCubes = minimumRequiredBlueCubes }
+
+powerOfSet :: Set -> Int
+powerOfSet set = (redCubes set) * (greenCubes set) * (blueCubes set)
 
 main = do
   input <- readFile "day02.input"
@@ -59,5 +68,8 @@ main = do
   let bag = Bag { loadedRedCubes = 12, loadedGreenCubes = 13, loadedBlueCubes = 14 }
       games = map parseGame $ lines input
       possibleGames = filter (isGamePlayable bag) games
+      minimumViableSets = map minimumViableSet games
       
   print $ sum $ map gameId possibleGames
+
+  print $ sum $ map powerOfSet minimumViableSets
