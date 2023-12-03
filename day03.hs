@@ -16,6 +16,9 @@ isSchematicSymbol _            = False
 partNumber (Part n _) = n
 partNumber _          = 0
 
+symbolValue (Symbol c _) = c
+symbolValue _            = undefined
+
 isBetween :: Int -> (Int, Int) -> Bool
 isBetween n (lower, upper) = lower <= n && n <= upper
 
@@ -59,6 +62,12 @@ parseLines s = parseLines' (lines s) 0 []
     parseLines' [] _ result = result
     parseLines' (line:lines) lineNumber result = parseLines' lines (lineNumber + 1) ((parseLine line lineNumber) ++ result)
 
+isAGear :: SchematicItem -> [SchematicItem] -> (Bool, [SchematicItem])
+isAGear symbol parts
+  | symbolValue symbol == '*' = let nearParts = filter (areTheyNear symbol) parts
+                                in if length nearParts == 2 then (True, nearParts) else (False, [])
+  | otherwise = (False, [])
+
 main = do
   input <- readFile "day03.input"
 
@@ -67,7 +76,11 @@ main = do
       symbols = filter isSchematicSymbol schematicItems
       partsNearSymbols = filter (isPartNearAnySymbol symbols) parts
 
+      gears = filter (\ (b, _) -> b == True) $ map (\ symbol -> isAGear symbol parts) symbols
+
       isPartNearAnySymbol :: [SchematicItem] -> SchematicItem -> Bool
       isPartNearAnySymbol symbols part = any (areTheyNear part) symbols
 
   print $ sum $ map partNumber partsNearSymbols
+
+  print $ sum $ map ( \ [g1, g2] -> partNumber g1 * partNumber g2 ) $ map snd gears
